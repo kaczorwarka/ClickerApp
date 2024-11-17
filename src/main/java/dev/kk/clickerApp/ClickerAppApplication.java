@@ -10,4 +10,5 @@ public class ClickerAppApplication {
 		SpringApplication.run(ClickerAppApplication.class, args);
 	}
 
+
 }
