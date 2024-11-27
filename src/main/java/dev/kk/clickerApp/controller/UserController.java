@@ -9,7 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/user")
@@ -28,13 +28,11 @@ public class UserController {
 
     @GetMapping("/{email}")
     User getUserByEmail(@PathVariable String email){
-        Optional<User> user = userService.getUserByEmail(email);
-
-        if (user.isEmpty()){
+        try {
+            return userService.getUserByEmail(email);
+        } catch (NoSuchElementException e){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-
-        return user.get();
     }
 
     @ResponseStatus(HttpStatus.CREATED)
@@ -50,36 +48,30 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{email}")
     void deleteUser(@PathVariable String email){
-        Optional<User> user = userService.deleteUser(email);
-
-        if (user.isEmpty()){
+        try{
+            userService.deleteUser(email);
+        }catch (NoSuchElementException e){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }
 
     @PutMapping("lives/{email}")
     User updateLives(@PathVariable String email, @RequestBody Map<String, Integer> lives){
-        Optional<User> user = userService.updateLives(email, lives.get("additionalLives"));
-
-        if (user.isEmpty()){
+        try {
+            return userService.updateLives(email, lives.get("additionalLives"));
+        }catch (NoSuchElementException e){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-
-        return user.get();
     }
 
     @PutMapping("/{email}")
     User updateUserData(@PathVariable String email, @RequestBody Map<String, String> userData){
         try{
-            Optional<User> user = userService.updateUserData(email, userData);
-
-            if (user.isEmpty()){
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-            }
-
-            return user.get();
+            return userService.updateUserData(email, userData);
         }catch (DuplicateKeyException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }catch (NoSuchElementException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }
 }

@@ -9,6 +9,4 @@ public class ClickerAppApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ClickerAppApplication.class, args);
 	}
-
-
 }

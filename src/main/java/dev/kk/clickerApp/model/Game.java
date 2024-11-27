@@ -1,14 +1,23 @@
 package dev.kk.clickerApp.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DocumentReference;
+import java.util.Date;
 
-@Document(collation = "Games")
-public record Game(
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Document(collection = "Games")
+public class Game {
         @Id
-        Integer id,
-        @DocumentReference
-        User user,
-        Integer Score
-) {}
+        ObjectId id;
+        Integer score;
+        Date gameDate;
+        ObjectId userId;
+}
