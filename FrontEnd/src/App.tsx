@@ -1,9 +1,9 @@
-import Message from "./Message";
+import AuthCard from "./components/Authentication/AuthCard";
 
 function App() {
   return (
     <div>
-      <Message />
+      <AuthCard />
     </div>
   );
 }
