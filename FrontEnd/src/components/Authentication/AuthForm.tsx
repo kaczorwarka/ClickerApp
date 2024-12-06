@@ -3,6 +3,8 @@ interface Props {
   dynamicPlaceHolder: string;
   dynamocId: string;
   dynamicLabel: string;
+  value: string;
+  setValue: React.Dispatch<React.SetStateAction<string>>;
 }
 
 function AuthForm({
@@ -10,6 +12,8 @@ function AuthForm({
   dynamicPlaceHolder,
   dynamocId,
   dynamicLabel,
+  value,
+  setValue,
 }: Props) {
   return (
     <div className="form-floating mb-3">
@@ -18,6 +22,10 @@ function AuthForm({
         className="form-control"
         id={dynamocId}
         placeholder={dynamicPlaceHolder}
+        value={value}
+        onChange={(e) => {
+          setValue(e.target.value);
+        }}
       />
       <label htmlFor={dynamocId}>{dynamicLabel}</label>
     </div>
@@ -25,13 +33,3 @@ function AuthForm({
 }
 
 export default AuthForm;
-
-// <div className="form-floating">
-//         <input
-//           type="password"
-//           className="form-control"
-//           id="floatingPassword"
-//           placeholder="Password"
-//         />
-//         <label htmlFor="floatingPassword">{dynamicLabel}</label>
-//       </div>

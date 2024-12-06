@@ -1,4 +1,4 @@
-import AuthCard from "./components/Authentication/AuthCard";
+import AuthCard from "./components/authentication/AuthCard";
 
 function App() {
   return (
