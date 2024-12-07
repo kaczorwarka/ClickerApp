@@ -23,15 +23,19 @@ function AuthCard() {
   };
 
   const getUser = async () => {
-    await fetch("http://localhost:8080/api/user/auth", {
-      method: "GET",
+    await fetch("http://localhost:8080/api/user/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // Ustawienie typu treści
+      },
       body: JSON.stringify({
-        email: email,
-        password: password,
+        "email": email,
+        "password": password,
       }),
     })
       .then((response) => {
         if (response.status === 200) {
+
         } else if (response.status === 403) {
           throw Error("Wrong login data");
         }
@@ -50,7 +54,7 @@ function AuthCard() {
 
   return (
     <div className="container-fluid vh-100 bg-primary-subtle">
-      <div className="position-absolute top-50 start-50 translate-middle bg-white p-4 w-25 rounded shadow">
+      <div className="position-absolute top-50 start-50 translate-middle bg-white p-4 w-50 rounded shadow">
         <form>
           <h1>Log In</h1>
           {forms.map((form, index) => (

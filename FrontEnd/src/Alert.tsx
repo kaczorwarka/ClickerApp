@@ -3,10 +3,10 @@ interface Props {
   alertText: string;
   setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
-// alert-danger
+
 function Alert({ alertType, alertText, setVisible }: Props) {
   return (
-    <div className={"alert " + alertType} role="alert">
+    <div className={"alert " + alertType + ' d-flex justify-content-between'} role="alert">
       {alertText}
       <button
         type="button"
