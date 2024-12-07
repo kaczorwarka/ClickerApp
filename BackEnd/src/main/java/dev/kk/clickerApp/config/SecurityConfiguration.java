@@ -26,7 +26,7 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable) //wylączenie csrf (REST API z tego nie korzysta
                 .authorizeHttpRequests(
                         authorizationManagerRequestMatcherRegistry -> authorizationManagerRequestMatcherRegistry
-                                .requestMatchers("/api/user/auth")
+                                .requestMatchers("/api/user/auth", "/api/user/auth/login", "/api/user/auth/registry")
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated() //Wszystke enedpointy poza publicznymi mają być objęte autoryzajcą

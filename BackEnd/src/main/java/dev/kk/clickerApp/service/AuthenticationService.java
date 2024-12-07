@@ -35,7 +35,11 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest){
-        authenticationManager.authenticate(
+//        authenticationManager.authenticate(
+//                new UsernamePasswordAuthenticationToken(email, password)
+//        );
+
+                authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         authenticationRequest.getEmail(),
                         authenticationRequest.getPassword()

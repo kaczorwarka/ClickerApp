@@ -13,12 +13,13 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/user/auth")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping()
+    @PostMapping("/registry")
     public AuthenticationResponse register(@RequestBody RegisterRequest registerRequest){
         try {
             return authenticationService.register(registerRequest);
@@ -27,8 +28,9 @@ public class AuthenticationController {
         }
     }
 
-    @GetMapping()
+    @PostMapping("/login")
     public AuthenticationResponse authenticate (@RequestBody AuthenticationRequest authenticationRequest) {
+        System.out.println("Hello");
         return authenticationService.authenticate(authenticationRequest);
     }
 }
