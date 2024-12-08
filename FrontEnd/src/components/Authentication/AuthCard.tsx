@@ -1,4 +1,4 @@
-import { useState} from "react";
+import { useState } from "react";
 import AuthForm from "./AuthForm";
 import Alert from "../../Alert";
 
@@ -8,6 +8,7 @@ function AuthCard() {
   let [alertVisible, setAlertVisible] = useState(false);
   let [alertText, setAltertText] = useState("");
   let [alertType, setAlertType] = useState("");
+  let [token, setToken] = useState(null);
 
   let forms = [
     ["email", "name@example.com", "Email", email],
@@ -17,38 +18,65 @@ function AuthCard() {
   let sets = [setEmail, setPassword];
 
   const handleSubmit = () => {
-    getUser();
-    setEmail("");
-    setPassword("");
+    getToken();
   };
 
-  const getUser = async () => {
-    await fetch("http://localhost:8080/api/user/auth/login", {
+
+  const getToken = async () => {
+    await fetch("http://localhost:8080/api/auth/login", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        "email": email,
-        "password": password,
+        email: email,
+        password: password,
       }),
     })
       .then((response) => {
-        if (response.status === 200) {
-
+        if (response.ok) {
+          return response.json();
         } else if (response.status === 403) {
           throw Error("Wrong login data");
         }
       })
       .then((data) => {
-        setAlertType('alert-success')
-        setAlertVisible(true)
-        setAltertText("GIT")
+        setToken(data.token);
+        getUser();
       })
       .catch((err) => {
-        setAlertType('alert-danger')
-        setAlertVisible(true)
-        setAltertText(err.message)
+        setAlertType("alert-danger");
+        setAlertVisible(true);
+        setAltertText(err.message);
+      });
+  };
+
+  const getUser = async () => {
+    await fetch(`http://localhost:8080/api/user/${email}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else if (response.status === 403) {
+          throw Error("Your tocken has expired");
+        }
+      })
+      .then((data) => {
+        setAlertType("alert-success");
+        setAlertVisible(true);
+        setAltertText(`Hello ${data.firstName}`);
+        setEmail("");
+        setPassword("");
+      })
+      .catch((err) => {
+        setAlertType("alert-danger");
+        setAlertVisible(true);
+        setAltertText(err.message);
       });
   };
 
@@ -79,12 +107,12 @@ function AuthCard() {
             </button>
           </div>
           {alertVisible && (
-              <Alert
-                alertType={alertType}
-                alertText={alertText}
-                setVisible={setAlertVisible}
-              />
-            )}
+            <Alert
+              alertType={alertType}
+              alertText={alertText}
+              setVisible={setAlertVisible}
+            />
+          )}
         </form>
       </div>
     </div>

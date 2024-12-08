@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/api/user/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:5173")
 public class AuthenticationController {
@@ -30,7 +30,6 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public AuthenticationResponse authenticate (@RequestBody AuthenticationRequest authenticationRequest) {
-        System.out.println("Hello");
         return authenticationService.authenticate(authenticationRequest);
     }
 }

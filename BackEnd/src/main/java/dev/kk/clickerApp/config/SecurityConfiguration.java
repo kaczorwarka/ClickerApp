@@ -10,6 +10,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -26,9 +31,9 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable) //wylączenie csrf (REST API z tego nie korzysta
                 .authorizeHttpRequests(
                         authorizationManagerRequestMatcherRegistry -> authorizationManagerRequestMatcherRegistry
-                                .requestMatchers("/api/user/auth", "/api/user/auth/login", "/api/user/auth/registry")
+                                .requestMatchers("/api/auth/**")
                                 .permitAll()
-                                .anyRequest()
+                                .requestMatchers( "/api/user/**", "/api/games/**")
                                 .authenticated() //Wszystke enedpointy poza publicznymi mają być objęte autoryzajcą
                 ).sessionManagement(
                         httpSecuritySessionManagementConfigurer ->httpSecuritySessionManagementConfigurer
