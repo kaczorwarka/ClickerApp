@@ -1,27 +1,9 @@
 import { useState } from "react";
 import AuthForm from "./AuthForm";
-import Alert from "../../Alert";
+import Alert from "../Alert";
+import Button from "../Button";
 
 function AuthCard() {
-  let [email, setEmail] = useState("");
-  let [password, setPassword] = useState("");
-  let [alertVisible, setAlertVisible] = useState(false);
-  let [alertText, setAltertText] = useState("");
-  let [alertType, setAlertType] = useState("");
-  let [token, setToken] = useState(null);
-
-  let forms = [
-    ["email", "name@example.com", "Email", email],
-    ["password", "Password", "Password", password],
-  ];
-
-  let sets = [setEmail, setPassword];
-
-  const handleSubmit = () => {
-    getToken();
-  };
-
-
   const getToken = async () => {
     await fetch("http://localhost:8080/api/auth/login", {
       method: "POST",
@@ -57,7 +39,7 @@ function AuthCard() {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
-      },
+      }
     })
       .then((response) => {
         if (response.ok) {
@@ -80,6 +62,31 @@ function AuthCard() {
       });
   };
 
+  const registry = () => {
+    
+  }
+
+  const handleSubmit = () => {
+    getToken();
+  };
+
+  let [email, setEmail] = useState("");
+  let [password, setPassword] = useState("");
+  let [alertVisible, setAlertVisible] = useState(false);
+  let [alertText, setAltertText] = useState("");
+  let [alertType, setAlertType] = useState("");
+  let [token, setToken] = useState(null);
+
+  let forms = [
+    {type: 'email', placeHolder: 'name@example.com', label: 'Email', value: email, setValue: setEmail},
+    {type: 'password', placeHolder: 'Password', label: 'Password', value: password, setValue: setPassword}
+  ]
+
+  let buttons = [
+    {type: 'btn-primary', value: 'Log In', onAction: handleSubmit},
+    {type: 'btn-outline-success', value: 'Registry', onAction: registry}
+  ]
+
   return (
     <div className="container-fluid vh-100 bg-primary-subtle">
       <div className="position-absolute top-50 start-50 translate-middle bg-white p-4 w-50 rounded shadow">
@@ -87,24 +94,18 @@ function AuthCard() {
           <h1>Log In</h1>
           {forms.map((form, index) => (
             <AuthForm
-              dynamicType={form[0]}
-              dynamicPlaceHolder={form[1]}
-              dynamicLabel={form[2]}
+              dynamicType={form.type}
+              dynamicPlaceHolder={form.placeHolder}
+              dynamicLabel={form.label}
               dynamocId={index.toString()}
-              value={form[3]}
-              setValue={sets[index]}
+              value={form.value}
+              setValue={form.setValue}
             />
           ))}
           <div className="d-flex justify-content-evenly">
-            <input
-              className="btn btn-primary"
-              type="button"
-              value="Log In"
-              onClick={handleSubmit}
-            />
-            <button type="button" className="btn btn-outline-success">
-              Registry
-            </button>
+           {buttons.map((button) => (
+            <Button buttonType={button.type} buttonValue={button.value} buttonAction={button.onAction}/>
+           ))}
           </div>
           {alertVisible && (
             <Alert

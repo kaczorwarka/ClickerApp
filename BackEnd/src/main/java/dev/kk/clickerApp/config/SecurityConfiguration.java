@@ -33,7 +33,7 @@ public class SecurityConfiguration {
                         authorizationManagerRequestMatcherRegistry -> authorizationManagerRequestMatcherRegistry
                                 .requestMatchers("/api/auth/**")
                                 .permitAll()
-                                .requestMatchers( "/api/user/**", "/api/games/**")
+                                .requestMatchers(  "/api/user/**", "/api/games/**")
                                 .authenticated() //Wszystke enedpointy poza publicznymi mają być objęte autoryzajcą
                 ).sessionManagement(
                         httpSecuritySessionManagementConfigurer ->httpSecuritySessionManagementConfigurer
@@ -42,5 +42,18 @@ public class SecurityConfiguration {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); //dodanie providera i mojego autentykacyjnego filtra
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(){
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Domena Vite
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
