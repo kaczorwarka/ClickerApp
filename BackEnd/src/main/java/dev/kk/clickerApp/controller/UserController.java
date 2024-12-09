@@ -13,7 +13,6 @@ import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/user")
-@CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
 
     private final UserService userService;
@@ -28,7 +27,8 @@ public class UserController {
     }
 
     @GetMapping("/{email}")
-    User getUserByEmail(@PathVariable String email){
+    User getUserByEmail(@PathVariable String email, @RequestHeader Map<String, String> headers){
+        System.out.println("Headers: " + headers);
         try {
             return userService.getUserByEmail(email);
         } catch (NoSuchElementException e){

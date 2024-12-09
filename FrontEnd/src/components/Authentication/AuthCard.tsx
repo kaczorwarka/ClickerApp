@@ -1,7 +1,8 @@
 import { useState } from "react";
-import AuthForm from "./AuthForm";
+import AuthForm from "../AuthForm";
 import Alert from "../Alert";
 import Button from "../Button";
+import { useNavigate } from "react-router-dom";
 
 function AuthCard() {
   const getToken = async () => {
@@ -20,9 +21,12 @@ function AuthCard() {
           return response.json();
         } else if (response.status === 403) {
           throw Error("Wrong login data");
+        } else {
+          throw Error(`${response.status}`)
         }
       })
       .then((data) => {
+        sessionStorage.setItem("token", JSON.stringify({ token: data.token }));
         setToken(data.token);
         getUser();
       })
@@ -38,14 +42,16 @@ function AuthCard() {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then((response) => {
         if (response.ok) {
           return response.json();
         } else if (response.status === 403) {
           throw Error("Your tocken has expired");
+        }else {
+          throw Error(`${response.status}`)
         }
       })
       .then((data) => {
@@ -54,6 +60,15 @@ function AuthCard() {
         setAltertText(`Hello ${data.firstName}`);
         setEmail("");
         setPassword("");
+        sessionStorage.setItem(
+          "user",
+          JSON.stringify({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            amountOfLives: data.amountOfLives,
+          })
+        );
       })
       .catch((err) => {
         setAlertType("alert-danger");
@@ -63,29 +78,43 @@ function AuthCard() {
   };
 
   const registry = () => {
-    
-  }
+    navigate("/register");
+  };
 
   const handleSubmit = () => {
     getToken();
   };
+
+  const navigate = useNavigate();
 
   let [email, setEmail] = useState("");
   let [password, setPassword] = useState("");
   let [alertVisible, setAlertVisible] = useState(false);
   let [alertText, setAltertText] = useState("");
   let [alertType, setAlertType] = useState("");
-  let [token, setToken] = useState(null);
+  let [token, setToken] = useState("");
 
   let forms = [
-    {type: 'email', placeHolder: 'name@example.com', label: 'Email', value: email, setValue: setEmail},
-    {type: 'password', placeHolder: 'Password', label: 'Password', value: password, setValue: setPassword}
-  ]
+    {
+      type: "email",
+      placeHolder: "name@example.com",
+      label: "Email",
+      value: email,
+      setValue: setEmail,
+    },
+    {
+      type: "password",
+      placeHolder: "Password",
+      label: "Password",
+      value: password,
+      setValue: setPassword,
+    },
+  ];
 
   let buttons = [
-    {type: 'btn-primary', value: 'Log In', onAction: handleSubmit},
-    {type: 'btn-outline-success', value: 'Registry', onAction: registry}
-  ]
+    { type: "btn-primary", value: "Log In", onAction: handleSubmit },
+    { type: "btn-outline-success", value: "Registry", onAction: registry },
+  ];
 
   return (
     <div className="container-fluid vh-100 bg-primary-subtle">
@@ -103,9 +132,13 @@ function AuthCard() {
             />
           ))}
           <div className="d-flex justify-content-evenly">
-           {buttons.map((button) => (
-            <Button buttonType={button.type} buttonValue={button.value} buttonAction={button.onAction}/>
-           ))}
+            {buttons.map((button) => (
+              <Button
+                buttonType={button.type}
+                buttonValue={button.value}
+                buttonAction={button.onAction}
+              />
+            ))}
           </div>
           {alertVisible && (
             <Alert
