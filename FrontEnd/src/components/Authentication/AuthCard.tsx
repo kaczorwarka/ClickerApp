@@ -22,13 +22,13 @@ function AuthCard() {
         } else if (response.status === 403) {
           throw Error("Wrong login data");
         } else {
-          throw Error(`${response.status}`)
+          throw Error(`${response.status}`);
         }
       })
       .then((data) => {
         sessionStorage.setItem("token", JSON.stringify({ token: data.token }));
         setToken(data.token);
-        getUser();
+        getUser(data.token);
       })
       .catch((err) => {
         setAlertType("alert-danger");
@@ -37,12 +37,12 @@ function AuthCard() {
       });
   };
 
-  const getUser = async () => {
+  const getUser = async (localToken: String) => {
     await fetch(`http://localhost:8080/api/user/${email}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${localToken}`,
       },
     })
       .then((response) => {
@@ -50,8 +50,8 @@ function AuthCard() {
           return response.json();
         } else if (response.status === 403) {
           throw Error("Your tocken has expired");
-        }else {
-          throw Error(`${response.status}`)
+        } else {
+          throw Error(`${response.status}`);
         }
       })
       .then((data) => {
@@ -69,6 +69,8 @@ function AuthCard() {
             amountOfLives: data.amountOfLives,
           })
         );
+
+        navigate("/main");
       })
       .catch((err) => {
         setAlertType("alert-danger");
