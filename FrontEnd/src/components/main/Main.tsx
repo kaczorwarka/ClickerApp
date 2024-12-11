@@ -18,19 +18,19 @@ function Main() {
 
   const logOut = () => {
     sessionStorage.clear();
-    navigate('/')
-  }
-    
+    navigate("/");
+  };
+
   const makePayment = () => {
-    if (user){
-        setUser({
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            amountOfLives: user.amountOfLives + 1
-        })
+    if (user) {
+      setUser({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        amountOfLives: user.amountOfLives + 1,
+      });
     }
-  }
+  };
 
   useEffect(() => {
     if (userString !== null && tokenString !== null) {
@@ -46,8 +46,28 @@ function Main() {
   }
 
   return (
-    <div className="container-fluid vh-100 bg-primary-subtle">
-      <NavBar amountOfLives={user.amountOfLives} handleLogOut={logOut} handlePayment={makePayment}/>
+    <div className="container-fluid vh-100 bg-primary-subtle  d-flex flex-column">
+      <NavBar
+        amountOfLives={user.amountOfLives}
+        handleLogOut={logOut}
+        handlePayment={makePayment}
+      />
+      <div></div>
+      <div className="d-flex align-items-center flex-grow-1">
+        <div className="container">
+          <div className="row g-5 justify-content-center">
+            <div className="col-12 col-md-4">
+              <div className="bg-white p-4 rounded shadow">Box 1</div>
+            </div>
+            <div className="col-12 col-md-4">
+              <div className="bg-white p-4 rounded shadow">Box 2</div>
+            </div>
+            <div className="col-12 col-md-4">
+              <div className="bg-white p-4 rounded shadow">Box 3</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
