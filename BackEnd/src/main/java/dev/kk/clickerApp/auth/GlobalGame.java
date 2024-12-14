@@ -13,7 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GlobalGame {
-    ObjectId id;
+    String id;
     Integer score;
     Date gameDate;
     String userName;

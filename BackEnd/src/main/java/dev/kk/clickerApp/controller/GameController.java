@@ -22,7 +22,7 @@ public class GameController {
     }
 
     @GetMapping("/user/{email}")
-    List<Game> getAllUserGames(@PathVariable String email){
+    List<GlobalGame> getAllUserGames(@PathVariable String email){
         try {
             return gameService.getAllUserGames(email);
         } catch (NoSuchElementException e) {
@@ -59,9 +59,9 @@ public class GameController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping()
-    void deleteGame(@RequestBody Map<String, ObjectId> game){
+    void deleteGame(@RequestBody Map<String, String> game){
         try{
-            gameService.deleteGame(game.get("id"));
+            gameService.deleteGame(new ObjectId(game.get("id")));
         }catch (NoSuchElementException e){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }

@@ -21,8 +21,17 @@ public class GameService {
         this.userService = userService;
     }
 
-    public List<Game> getAllUserGames(String email){
-        return gameRepository.findGamesByUserId(userService.getUserByEmail(email).getId());
+    public List<GlobalGame> getAllUserGames(String email){
+        List<GlobalGame> globalGames = new ArrayList<>();
+        List<Game> games = gameRepository.findGamesByUserId(userService.getUserByEmail(email).getId());
+        games.forEach(game -> {
+            try {
+                User user = userService.getUser(game.getUserId());
+                globalGames.add(new GlobalGame(game.getId().toString(), game.getScore(), game.getGameDate(), user.getFirstName()));
+            } catch (NoSuchElementException _) {}
+        });
+
+        return globalGames;
     }
 
     public List<Game> getBestUserGames(String email, int numberOfPlaces){
@@ -44,7 +53,7 @@ public class GameService {
         games.forEach(game -> {
             try {
                 User user = userService.getUser(game.getUserId());
-                globalGames.add(new GlobalGame(game.getId(), game.getScore(), game.getGameDate(), user.getFirstName()));
+                globalGames.add(new GlobalGame(game.getId().toString(), game.getScore(), game.getGameDate(), user.getFirstName()));
             } catch (NoSuchElementException _) {}
         });
 

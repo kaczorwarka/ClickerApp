@@ -227,6 +227,7 @@ function Main() {
           userName: '',
         }));
         setUserGames(games);
+        getGlobalGames(30, localToken);
       });
   };
 
@@ -263,7 +264,6 @@ function Main() {
     if (userString !== null && tokenString !== null) {
       setUser(JSON.parse(userString));
       setToken(tokenString);
-      getGlobalGames(30, tokenString)
       getUserGames(tokenString, JSON.parse(userString).email)
     } else {
       logOut();
