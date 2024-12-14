@@ -2,6 +2,7 @@ package dev.kk.clickerApp.service;
 import dev.kk.clickerApp.model.User;
 import dev.kk.clickerApp.repository.GameRepository;
 import dev.kk.clickerApp.repository.UserRepository;
+import org.bson.types.ObjectId;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,6 +21,10 @@ public class UserService implements UserDetailsService {
     public UserService(UserRepository userRepository, GameRepository gameRepository) {
         this.userRepository = userRepository;
         this.gameRepository = gameRepository;
+    }
+
+    public User getUser(ObjectId id) {
+        return userRepository.findUserById(id).orElseThrow();
     }
 
     public User getUserByEmail(String email){

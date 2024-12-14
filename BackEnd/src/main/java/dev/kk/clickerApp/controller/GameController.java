@@ -1,4 +1,5 @@
 package dev.kk.clickerApp.controller;
+import dev.kk.clickerApp.auth.GlobalGame;
 import dev.kk.clickerApp.model.Game;
 import dev.kk.clickerApp.service.GameService;
 import dev.kk.clickerApp.service.UserService;
@@ -16,7 +17,7 @@ import java.util.NoSuchElementException;
 public class GameController {
 
     final private GameService gameService;
-    public GameController(UserService userService, GameService gameService){
+    public GameController(GameService gameService){
         this.gameService = gameService;
     }
 
@@ -40,9 +41,9 @@ public class GameController {
         }
     }
 
-    @GetMapping("/bestGlobal/")
-    List<Game> getBestGlobalGames(@RequestBody Map<String, Integer> places){
-        return gameService.getBestGlobalGames(places.get("places"));
+    @GetMapping("/bestGlobal/{places}")
+    List<GlobalGame> getBestGlobalGames(@PathVariable int places){
+        return gameService.getBestGlobalGames(places);
     }
 
     @ResponseStatus(HttpStatus.CREATED)

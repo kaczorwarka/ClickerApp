@@ -15,6 +15,13 @@ interface User {
   password: string;
 }
 
+interface Game {
+  id: string;
+  score: number;
+  gameDate: Date;
+  userName: string;
+}
+
 function Main() {
   const handleDelete = () => {
     deleteUser();
@@ -25,10 +32,14 @@ function Main() {
   };
 
   const handleModify = () => {
-    modifyUser()
+    modifyUser();
 
     setUserUpdate(false);
   };
+
+  const handleDeleteGame = (id: string) => {
+    deleteGame(id);
+  }
 
   let [user, setUser] = useState<User>();
   let [token, setToken] = useState("");
@@ -40,10 +51,11 @@ function Main() {
   let [alertVisible, setAlertVisible] = useState(false);
   let [alertText, setAltertText] = useState("");
   let [alertType, setAlertType] = useState("");
+  let [globalGames, setGlobalGames] = useState<Game[]>([])
+  let [userGames, setUserGames] = useState<Game[]>([])
   let userString = sessionStorage.getItem("user");
   let tokenString = sessionStorage.getItem("token");
   const navigate = useNavigate();
-  const today = new Date(2022, 10, 3);
 
   let forms = [
     {
@@ -100,19 +112,21 @@ function Main() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }).then((response) => {
-        if (response.status === 204) {
-          logOut();
-        } else if (response.status === 403) {
-          throw Error("Your tocken has expired");
-        } else {
-          throw Error(`${response.status}`);
-        }
-      }).catch((err) => {
-        setAlertType("alert-danger");
-        setAlertVisible(true);
-        setAltertText(err.message);
-      });
+      })
+        .then((response) => {
+          if (response.status === 204) {
+            logOut();
+          } else if (response.status === 403) {
+            throw Error("Your tocken has expired");
+          } else {
+            throw Error(`${response.status}`);
+          }
+        })
+        .catch((err) => {
+          setAlertType("alert-danger");
+          setAlertVisible(true);
+          setAltertText(err.message);
+        });
     }
   };
 
@@ -128,48 +142,110 @@ function Main() {
           firstName: firstName,
           lastName: lastName,
           email: email,
-          password: password
+          password: password,
         }),
-      }).then((response) => {
-        if (response.ok) {
-          return response.json();
-        } else if (response.status === 400){
-          throw Error("Wrong login data");
-        } else if (response.status === 404) {
-          logOut();
-        } else if (response.status === 403) {
-          throw Error("Your tocken has expired");
-        } else {
-          throw Error(`${response.status}`);
-        }
-      }).then((data) =>{
-        setEmail("");
-        setPassword("");
-        setFirstName("");
-        setLastName("");
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else if (response.status === 400) {
+            throw Error("Wrong login data");
+          } else if (response.status === 404) {
+            logOut();
+          } else if (response.status === 403) {
+            throw Error("Your tocken has expired");
+          } else {
+            throw Error(`${response.status}`);
+          }
+        })
+        .then((data) => {
+          setEmail("");
+          setPassword("");
+          setFirstName("");
+          setLastName("");
 
-        sessionStorage.setItem(
-          "user",
-          JSON.stringify({
-            firstName: data.firstName,
-            lastName: data.lastName,
-            email: data.email,
-            amountOfLives: data.amountOfLives,
-          })
-        );
+          sessionStorage.setItem(
+            "user",
+            JSON.stringify({
+              firstName: data.firstName,
+              lastName: data.lastName,
+              email: data.email,
+              amountOfLives: data.amountOfLives,
+            })
+          );
 
-        setAlertType("alert-success");
-        setAlertVisible(true);
-        setAltertText("Success");
-      }
-
-      ).catch((err) => {
-        setAlertType("alert-danger");
-        setAlertVisible(true);
-        setAltertText(err.message);
-      });
+          setAlertType("alert-success");
+          setAlertVisible(true);
+          setAltertText("Success");
+        })
+        .catch((err) => {
+          setAlertType("alert-danger");
+          setAlertVisible(true);
+          setAltertText(err.message);
+        });
     }
   };
+
+  const getGlobalGames = async (numberOfGames: number, localToken: string) => {
+    await fetch(`http://localhost:8080/api/games/bestGlobal/${numberOfGames}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localToken}`,
+      },
+    })
+      .then((response) => {
+        if (response.ok) return response.json();
+      })
+      .then((data) => {
+        const games = data.map((game: any) => ({
+          id: game.id,
+          score: game.score,
+          gameDate: new Date(game.gameDate),
+          userName: game.userName,
+        }));
+        setGlobalGames(games);
+      });
+  };
+
+  const getUserGames = async (localToken: string, email: string) => {
+    await fetch(`http://localhost:8080/api/games/user/${email}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localToken}`,
+      },
+    })
+      .then((response) => {
+        if (response.ok) return response.json();
+      })
+      .then((data) => {
+        const games = data.map((game: any) => ({
+          id: game.id,
+          score: game.score,
+          gameDate: new Date(game.gameDate),
+          userName: '',
+        }));
+        setUserGames(games);
+      });
+  };
+
+  const deleteGame = async (id: string) => {
+    await fetch("http://localhost:8080/api/games", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        id: id 
+      })
+    }).then((response) => {
+      if (response.status === 204 && user) {
+        getUserGames(token, user?.email);
+      }
+    })
+  }
 
   const makePayment = () => {
     if (user) {
@@ -187,6 +263,8 @@ function Main() {
     if (userString !== null && tokenString !== null) {
       setUser(JSON.parse(userString));
       setToken(tokenString);
+      getGlobalGames(30, tokenString)
+      getUserGames(tokenString, JSON.parse(userString).email)
     } else {
       logOut();
     }
@@ -230,7 +308,6 @@ function Main() {
   };
 
   if (!user) {
-    // logOut();
     return <></>;
   }
 
@@ -271,21 +348,21 @@ function Main() {
                 </div>
                 <div
                   className="p-3"
-                  style={{ maxHeight: "300px", overflowY: "auto" }}
+                  style={{ height: "300px", overflowY: "auto" }}
                 >
                   <ul className="list-unstyled">
-                    {Array.from({ length: 20 }, (_, index) => (
-                      <li key={index} className="mb-3">
-                        <Score
-                          date={today.toLocaleDateString()}
-                          user="Item"
-                          score={index}
-                          buttonType={""}
-                          buttonValue={""}
-                          isButtonEnabled={false}
-                          buttonAction={() => {}}
-                        />
-                      </li>
+                    {globalGames.map((game, index) => (
+                       <li key={index} className="mb-3">
+                       <Score
+                         date={game.gameDate.toLocaleDateString()}
+                         user={game.userName}
+                         score={game.score}
+                         buttonType={""}
+                         buttonValue={""}
+                         isButtonEnabled={false}
+                         buttonAction={() => {}}
+                       />
+                     </li>
                     ))}
                   </ul>
                 </div>
@@ -300,21 +377,21 @@ function Main() {
                 </div>
                 <div
                   className="p-3"
-                  style={{ maxHeight: "300px", overflowY: "auto" }}
+                  style={{ height: "300px", overflowY: "auto" }}
                 >
                   <ul className="list-unstyled">
-                    {Array.from({ length: 20 }, (_, index) => (
-                      <li key={index} className="mb-3">
-                        <Score
-                          date={today.toLocaleDateString()}
-                          user=""
-                          score={index}
-                          buttonType={"btn-danger"}
-                          buttonValue={"Delete"}
-                          isButtonEnabled={true}
-                          buttonAction={() => {}}
-                        />
-                      </li>
+                  {userGames.map((game, index) => (
+                       <li key={index} className="mb-3">
+                       <Score
+                         date={game.gameDate.toLocaleDateString()}
+                         user=""
+                         score={game.score}
+                         buttonType={"btn-danger"}
+                         buttonValue={"Delete"}
+                         isButtonEnabled={true}
+                         buttonAction={() => handleDeleteGame(game.id)}
+                       />
+                     </li>
                     ))}
                   </ul>
                 </div>

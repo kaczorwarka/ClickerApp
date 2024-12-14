@@ -29,7 +29,6 @@ function AuthCard() {
       })
       .then((data) => {
         sessionStorage.setItem("token", data.token);
-        setToken(data.token);
         getUser(data.token);
       })
       .catch((err) => {
@@ -96,7 +95,6 @@ function AuthCard() {
   let [alertVisible, setAlertVisible] = useState(false);
   let [alertText, setAltertText] = useState("");
   let [alertType, setAlertType] = useState("");
-  let [token, setToken] = useState("");
 
   let forms = [
     {

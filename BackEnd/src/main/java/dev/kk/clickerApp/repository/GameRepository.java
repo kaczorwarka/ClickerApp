@@ -8,5 +8,7 @@ public interface GameRepository extends MongoRepository<Game, ObjectId> {
 
     List<Game> findGamesByUserId(ObjectId userId);
 
+    Game findGameById(ObjectId Id);
+
     void deleteByUserId(ObjectId userId);
 }
