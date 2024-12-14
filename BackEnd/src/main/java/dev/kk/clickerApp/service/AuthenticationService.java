@@ -11,6 +11,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -47,5 +50,16 @@ public class AuthenticationService {
         );
         User user = userRepository.findUserByEmail(authenticationRequest.getEmail()).orElseThrow();
         return new AuthenticationResponse(jwtService.generateToken(user));
+    }
+
+    public User changePassword(String email, Map<String, String> userData) {
+        User user = userRepository.findUserByEmail(email).orElseThrow();
+
+        if (!Objects.equals(userData.get("password"), "") && Objects.nonNull(userData.get("password"))){
+            user.setPassword(passwordEncoder.encode(userData.get("password")));
+
+            return userRepository.save(user);
+        }
+        return user;
     }
 }

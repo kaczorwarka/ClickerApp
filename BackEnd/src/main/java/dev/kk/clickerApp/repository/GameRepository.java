@@ -7,4 +7,6 @@ import java.util.List;
 public interface GameRepository extends MongoRepository<Game, ObjectId> {
 
     List<Game> findGamesByUserId(ObjectId userId);
+
+    void deleteByUserId(ObjectId userId);
 }

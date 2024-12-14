@@ -1,9 +1,11 @@
 package dev.kk.clickerApp.service;
 import dev.kk.clickerApp.model.User;
+import dev.kk.clickerApp.repository.GameRepository;
 import dev.kk.clickerApp.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +15,11 @@ import java.util.Objects;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final GameRepository gameRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, GameRepository gameRepository) {
         this.userRepository = userRepository;
+        this.gameRepository = gameRepository;
     }
 
     public User getUserByEmail(String email){
@@ -31,7 +35,8 @@ public class UserService implements UserDetailsService {
    }
 
    public void deleteUser(String email){
-       userRepository.deleteUserByEmail(email).orElseThrow();
+        gameRepository.deleteByUserId(getUserByEmail(email).getId());
+        userRepository.deleteUserByEmail(email).orElseThrow();
    }
 
    public User updateLives(String email, Integer additionalLives){
@@ -46,17 +51,14 @@ public class UserService implements UserDetailsService {
        if (!Objects.equals(userData.get("firstName"), "") && Objects.nonNull(userData.get("firstName"))){
            user.setFirstName(userData.get("firstName"));
        }
-       if (!Objects.equals(userData.get("lastName"), "") && Objects.nonNull(userData.get("lastName"))){
+       if (!Objects.equals(userData.get("lastName"), "") && Objects.nonNull(userData.get("lastName"))) {
            user.setLastName(userData.get("lastName"));
-       }
-       if (!Objects.equals(userData.get("password"), "") && Objects.nonNull(userData.get("password"))){
-           user.setPassword(userData.get("password"));
        }
        if (!Objects.equals(userData.get("email"), "") && Objects.nonNull(userData.get("email"))){
            user.setEmail(userData.get("email"));
        }
 
-       return user;
+       return userRepository.save(user);
    }
 
     @Override

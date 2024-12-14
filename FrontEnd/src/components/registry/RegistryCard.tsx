@@ -68,6 +68,8 @@ function RegistryCard() {
               amountOfLives: data.amountOfLives,
             })
           );
+
+          navigate("/main");
         })
         .catch((err) => {
           setAlertType("alert-danger");
@@ -134,7 +136,6 @@ function RegistryCard() {
     <div className="container-fluid vh-100 bg-primary-subtle">
       <div className="position-absolute top-50 start-50 translate-middle bg-white p-4 w-50 rounded shadow">
         <form>
-          <h1>Registry</h1>
           {forms.map((form, index) => (
             <AuthForm
               dynamicType={form.type}

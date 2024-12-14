@@ -1,6 +1,7 @@
 package dev.kk.clickerApp.controller;
 
 import dev.kk.clickerApp.model.User;
+import dev.kk.clickerApp.service.AuthenticationService;
 import dev.kk.clickerApp.service.UserService;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -16,9 +17,11 @@ import java.util.NoSuchElementException;
 public class UserController {
 
     private final UserService userService;
+    private final AuthenticationService authenticationService;
 
-    public UserController(UserService userService){
+    public UserController(UserService userService, AuthenticationService authenticationService){
         this.userService = userService;
+        this.authenticationService = authenticationService;
     }
 
     @GetMapping
@@ -68,7 +71,7 @@ public class UserController {
     @PutMapping("/{email}")
     User updateUserData(@PathVariable String email, @RequestBody Map<String, String> userData){
         try{
-            return userService.updateUserData(email, userData);
+            return authenticationService.changePassword(userService.updateUserData(email, userData).getEmail(), userData);
         }catch (DuplicateKeyException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }catch (NoSuchElementException e) {

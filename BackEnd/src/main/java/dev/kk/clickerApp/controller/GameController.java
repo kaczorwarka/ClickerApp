@@ -2,6 +2,7 @@ package dev.kk.clickerApp.controller;
 import dev.kk.clickerApp.model.Game;
 import dev.kk.clickerApp.service.GameService;
 import dev.kk.clickerApp.service.UserService;
+import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -52,6 +53,16 @@ public class GameController {
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
             // Bo użytkownik po emailu jest szukany narazie i może go nie znaleźć
+        }
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping()
+    void deleteGame(@RequestBody Map<String, ObjectId> game){
+        try{
+            gameService.deleteGame(game.get("id"));
+        }catch (NoSuchElementException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }
 }

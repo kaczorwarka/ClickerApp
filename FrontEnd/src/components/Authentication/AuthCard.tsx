@@ -19,6 +19,8 @@ function AuthCard() {
       .then((response) => {
         if (response.ok) {
           return response.json();
+        } else if (response.status === 400){
+          throw Error("Wrong login data");
         } else if (response.status === 403) {
           throw Error("Wrong login data");
         } else {
@@ -26,7 +28,7 @@ function AuthCard() {
         }
       })
       .then((data) => {
-        sessionStorage.setItem("token", JSON.stringify({ token: data.token }));
+        sessionStorage.setItem("token", data.token);
         setToken(data.token);
         getUser(data.token);
       })
