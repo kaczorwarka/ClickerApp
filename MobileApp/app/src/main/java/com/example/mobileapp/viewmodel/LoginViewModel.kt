@@ -5,14 +5,17 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
 import com.example.mobileapp.apiconnection.RetrofitInstance
 import com.example.mobileapp.apiconnection.auth.AuthenticationRequest
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import okio.IOException
 import retrofit2.HttpException
 
-const val TAG = "LoginAcctivity"
+const val TAG = "LoginActivity"
 
 class LoginViewModel: ViewModel() {
 
@@ -20,7 +23,7 @@ class LoginViewModel: ViewModel() {
     var passwordTextField = mutableStateOf("")
     var token: String ?= ""
 
-    fun onSignInClick(snackBarHostState: SnackbarHostState, scope: CoroutineScope) {
+    fun onSignInClick(snackBarHostState: SnackbarHostState, navController: NavController, scope: CoroutineScope) {
         val temporaryEmail = emailTextField.value
         val temporaryPassword = passwordTextField.value
         scope.launch {
@@ -29,7 +32,7 @@ class LoginViewModel: ViewModel() {
                     if (response.isSuccessful){
                         val authResponse = response.body()
                         token = authResponse?.token
-                        token?.let { getUser(temporaryEmail, it, snackBarHostState, scope) }
+                        token?.let { getUser(temporaryEmail, it, snackBarHostState, navController, scope) }
 
 //                        snackBarHostState.showSnackbar(
 //                            message = "Token ${authResponse?.token}",
@@ -61,16 +64,29 @@ class LoginViewModel: ViewModel() {
         passwordTextField.value = ""
     }
 
-    private fun getUser(email: String, token: String, snackBarHostState: SnackbarHostState, scope: CoroutineScope) {
+    private fun getUser(email: String,
+                        token: String,
+                        snackBarHostState: SnackbarHostState,
+                        navController: NavController,
+                        scope: CoroutineScope) {
         scope.launch {
             try {
-                val response = RetrofitInstance.getUser.getUser(email, "Bearer 123")
+                val response = RetrofitInstance.getUser.getUser(email, "Bearer $token")
                 if (response.isSuccessful) {
                     val user = response.body()
-                    snackBarHostState.showSnackbar(
-                        message = "Hello: ${user?.firstName}",
-                        duration = SnackbarDuration.Short
-                    )
+                    if (user != null) {
+                         navController.navigate(Screen.MainScreen.withArgs(
+                            user.firstName,
+                            user.lastName,
+                            user.email,
+                            user.amountOfLives.toString(),
+                            token
+                        ))
+                    }
+//                    snackBarHostState.showSnackbar(
+//                        message = "Hello: ${user?.firstName}",
+//                        duration = SnackbarDuration.Short
+//                    )
                 } else {
                     snackBarHostState.showSnackbar(
                         message = "Error: ${response.code()}",
