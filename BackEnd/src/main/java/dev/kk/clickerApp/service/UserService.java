@@ -47,7 +47,7 @@ public class UserService implements UserDetailsService {
    public User updateLives(String email, Integer additionalLives){
         User user = userRepository.findUserByEmail(email).orElseThrow();
         user.setAmountOfLives(user.getAmountOfLives() + additionalLives);
-        return user;
+        return userRepository.save(user);
    }
 
    public User updateUserData(String email, Map<String, String> userData){

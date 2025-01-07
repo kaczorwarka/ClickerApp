@@ -25,6 +25,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -32,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +62,9 @@ fun MainScreen(
     amountOfLives: Int?,
     token: String?
 ) {
+    val scope = rememberCoroutineScope()
+    val snackBarHostState = remember { SnackbarHostState() }
+
     val viewModel = viewModel<MainViewModel>(
         factory = object : ViewModelProvider.Factory{
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -69,7 +75,9 @@ fun MainScreen(
                         lastName = lastName,
                         email = email,
                         amountOfLives = amountOfLives,
-                        token = token
+                        token = token,
+                        scope = scope,
+                        snackBarHostState =  snackBarHostState
                     ) as T
                 } else
                     super.create(modelClass))
@@ -82,6 +90,8 @@ fun MainScreen(
         animationSpec = tween(durationMillis = 150), label = ""
     )
 
+    val timerValue by viewModel.timerValue
+    val lives by viewModel.lives
     Scaffold(
         topBar = {
             TopAppBar(
@@ -92,7 +102,7 @@ fun MainScreen(
                         contentDescription = "Health"
                     )
                     Text(
-                        text = "x${viewModel.lives.intValue}",
+                        text = "x$lives",
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 30.sp
                     )
@@ -105,6 +115,9 @@ fun MainScreen(
                     }
                 }
             )
+        },
+        snackbarHost = {
+            SnackbarHost(snackBarHostState)
         }
     ) { paddingValues ->
         Box(
@@ -130,8 +143,7 @@ fun MainScreen(
                     )
                     Button(
                         onClick = {
-                            viewModel.gameStarted.value = true
-                            viewModel.score.intValue = 0
+                            viewModel.checkStart()
                         },
                         modifier = Modifier.padding(16.dp)
                     ) {
@@ -157,7 +169,7 @@ fun MainScreen(
                         style = MaterialTheme.typography.titleLarge
                     )
                     Text(
-                        text = "Timer: ${viewModel.timerValue.value}",
+                        text = "Timer: $timerValue",
                         style = MaterialTheme.typography.titleLarge
                     )
                     Button(
@@ -191,7 +203,7 @@ fun MainScreen(
                             .alpha(if (!viewModel.isStartEnabled.value) 1f else 0.5f)
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.heart),
+                            painter = painterResource(id = R.drawable.button),
                             contentDescription = "Game Image",
                             modifier = Modifier.size(size)
                         )

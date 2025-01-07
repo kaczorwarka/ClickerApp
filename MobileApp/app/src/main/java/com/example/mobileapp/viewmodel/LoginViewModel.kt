@@ -21,7 +21,7 @@ class LoginViewModel: ViewModel() {
 
     var emailTextField = mutableStateOf("")
     var passwordTextField = mutableStateOf("")
-    var token: String ?= ""
+    private var token: String ?= ""
 
     fun onSignInClick(snackBarHostState: SnackbarHostState, navController: NavController, scope: CoroutineScope) {
         val temporaryEmail = emailTextField.value
@@ -33,11 +33,11 @@ class LoginViewModel: ViewModel() {
                         val authResponse = response.body()
                         token = authResponse?.token
                         token?.let { getUser(temporaryEmail, it, snackBarHostState, navController, scope) }
-
-//                        snackBarHostState.showSnackbar(
-//                            message = "Token ${authResponse?.token}",
-//                            duration = SnackbarDuration.Short
-//                        )
+                    } else if(response.code() == 403){
+                        snackBarHostState.showSnackbar(
+                            message = "Wrong login data",
+                            duration = SnackbarDuration.Short
+                        )
                     } else {
                         snackBarHostState.showSnackbar(
                             message = "Error: ${response.code()}",
@@ -71,7 +71,7 @@ class LoginViewModel: ViewModel() {
                         scope: CoroutineScope) {
         scope.launch {
             try {
-                val response = RetrofitInstance.getUser.getUser(email, "Bearer $token")
+                val response = RetrofitInstance.userCrud.getUser(email, "Bearer $token")
                 if (response.isSuccessful) {
                     val user = response.body()
                     if (user != null) {
