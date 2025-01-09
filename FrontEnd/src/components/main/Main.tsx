@@ -22,6 +22,12 @@ interface Game {
   userName: string;
 }
 
+interface paypalRequest {
+  token: string;
+  processId: string;
+  orderId: string;
+}
+
 function Main() {
   const handleDelete = () => {
     deleteUser();
@@ -39,9 +45,10 @@ function Main() {
 
   const handleDeleteGame = (id: string) => {
     deleteGame(id);
-  }
+  };
 
   let [user, setUser] = useState<User>();
+  let [paypalRequest, setPaypalRequest] = useState<paypalRequest>();
   let [token, setToken] = useState("");
   let [userUpdate, setUserUpdate] = useState(false);
   let [email, setEmail] = useState("");
@@ -51,8 +58,8 @@ function Main() {
   let [alertVisible, setAlertVisible] = useState(false);
   let [alertText, setAltertText] = useState("");
   let [alertType, setAlertType] = useState("");
-  let [globalGames, setGlobalGames] = useState<Game[]>([])
-  let [userGames, setUserGames] = useState<Game[]>([])
+  let [globalGames, setGlobalGames] = useState<Game[]>([]);
+  let [userGames, setUserGames] = useState<Game[]>([]);
   let userString = sessionStorage.getItem("user");
   let tokenString = sessionStorage.getItem("token");
   const navigate = useNavigate();
@@ -224,7 +231,7 @@ function Main() {
           id: game.id,
           score: game.score,
           gameDate: new Date(game.gameDate),
-          userName: '',
+          userName: "",
         }));
         setUserGames(games);
         getGlobalGames(30, localToken);
@@ -239,24 +246,168 @@ function Main() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        id: id 
-      })
+        id: id,
+      }),
     }).then((response) => {
       if (response.status === 204 && user) {
         getUserGames(token, user?.email);
       }
-    })
-  }
+    });
+  };
 
-  const makePayment = () => {
+  const makePayment = async () => {
+    const clientId =
+      "AeUnxrvAmYBKIiI0LToqpm8AD8Yq2zCvLuVkoiBDGdLVVLnAXi6xis5gtn7pr5Dlt2zdKzxttq_G-RqU"; // Podstaw swój client_id
+    const clientSecret =
+      "EGMcIZBI9HQCj_PLug9c4UBK_vSN-NRL3eOHxYOgg-NQR6rFcbwNcIde1Lvdwdofdz-u3q1h3V00I5AM"; // Podstaw swój client_secret
+
+    const credentials = btoa(`${clientId}:${clientSecret}`);
+
     if (user) {
-      setUser({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        amountOfLives: user.amountOfLives + 1,
-        password: user.password,
+      await fetch("https://api-m.sandbox.paypal.com/v1/oauth2/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded", // Wymagany typ dla tego endpointa
+          Authorization: `Basic ${credentials}`, // Basic Authorization
+        },
+        body: "grant_type=client_credentials",
+      })
+        .then((response) => {
+          if (response.ok) return response.json();
+        })
+        .then((data) => {
+          callPayPal(data.access_token);
+        });
+    }
+  };
+
+  const callPayPal = async (tokenPayPal: string) => {
+    const body = {
+      intent: "CAPTURE",
+      payment_source: {
+        paypal: {
+          experience_context: {
+            payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+            landing_page: "LOGIN",
+            shipping_preference: "GET_FROM_FILE",
+            user_action: "PAY_NOW",
+            return_url: "http://localhost:5173/main",
+            cancel_url: "http://localhost:5173/main",
+          },
+        },
+      },
+      purchase_units: [
+        {
+          amount: {
+            currency_code: "USD",
+            value: "10.00",
+          },
+        },
+      ],
+    };
+
+    const processId = crypto.randomUUID();
+    await fetch("https://api-m.sandbox.paypal.com/v2/checkout/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        tokenPayPal: `${processId}`,
+        Authorization: `Bearer ${tokenPayPal}`,
+      },
+      body: JSON.stringify(body),
+    })
+      .then((response) => {
+        if (response.ok) return response.json();
+      })
+      .then((data) => {
+        const payLink = data.links?.find(
+          (link: any) => link.rel === "payer-action"
+        )?.href;
+        const localPayPalRequest: paypalRequest = {
+          token: tokenPayPal,
+          orderId: data.id,
+          processId: processId,
+        };
+        setPaypalRequest(localPayPalRequest);
+        sessionStorage.setItem("paymet", JSON.stringify(localPayPalRequest));
+        window.location.href = payLink;
       });
+  };
+
+  const checkPayment = async () => {
+    let paypalRequestString = sessionStorage.getItem("paymet");
+    let localPayPalRequest = null;
+    if (paypalRequestString !== null && paypalRequestString !== "")
+      localPayPalRequest = JSON.parse(paypalRequestString);
+
+    if (localPayPalRequest === null) return localPayPalRequest;
+
+    await fetch(
+      `https://api-m.sandbox.paypal.com/v2/checkout/orders/${localPayPalRequest.orderId}/capture`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          tokenPayPal: `${localPayPalRequest.processId}`,
+          Authorization: `Bearer ${localPayPalRequest.token}`,
+        },
+      }
+    )
+      .then((response) => {
+        if (response.ok) return response.json();
+      })
+      .then((data) => {
+        if (data.status === "COMPLETED") {
+          console.log(`Status: ${data.status}`);
+          sessionStorage.setItem("payment", "");
+          console.log("test 1")
+          changeLivesAmount(3);
+        }
+      });
+  };
+
+  const changeLivesAmount = async (changeLives: number) => {
+    let localUser
+    if (userString !== null && tokenString !== null) {
+      localUser = JSON.parse(userString)
+    }
+
+    if (localUser) {
+      console.log("test 3")
+      await fetch(`http://localhost:8080/api/user/lives/${localUser.email}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${tokenString}`,
+        },
+        body: JSON.stringify({
+          additionalLives: changeLives,
+        }),
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else if (response.status === 404) {
+            logOut();
+          } else if (response.status === 403) {
+            throw Error("Your tocken has expired");
+          } else {
+            throw Error(`${response.status}`);
+          }
+        })
+        .then((data) => {
+          sessionStorage.setItem(
+            "user",
+            JSON.stringify({
+              firstName: data.firstName,
+              lastName: data.lastName,
+              email: data.email,
+              amountOfLives: data.amountOfLives,
+            })
+          );
+
+          navigate("/main")
+        });
     }
   };
 
@@ -264,7 +415,8 @@ function Main() {
     if (userString !== null && tokenString !== null) {
       setUser(JSON.parse(userString));
       setToken(tokenString);
-      getUserGames(tokenString, JSON.parse(userString).email)
+      getUserGames(tokenString, JSON.parse(userString).email);
+      checkPayment();
     } else {
       logOut();
     }
@@ -352,17 +504,17 @@ function Main() {
                 >
                   <ul className="list-unstyled">
                     {globalGames.map((game, index) => (
-                       <li key={index} className="mb-3">
-                       <Score
-                         date={game.gameDate.toLocaleDateString()}
-                         user={game.userName}
-                         score={game.score}
-                         buttonType={""}
-                         buttonValue={""}
-                         isButtonEnabled={false}
-                         buttonAction={() => {}}
-                       />
-                     </li>
+                      <li key={index} className="mb-3">
+                        <Score
+                          date={game.gameDate.toLocaleDateString()}
+                          user={game.userName}
+                          score={game.score}
+                          buttonType={""}
+                          buttonValue={""}
+                          isButtonEnabled={false}
+                          buttonAction={() => {}}
+                        />
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -380,18 +532,18 @@ function Main() {
                   style={{ height: "300px", overflowY: "auto" }}
                 >
                   <ul className="list-unstyled">
-                  {userGames.map((game, index) => (
-                       <li key={index} className="mb-3">
-                       <Score
-                         date={game.gameDate.toLocaleDateString()}
-                         user=""
-                         score={game.score}
-                         buttonType={"btn-danger"}
-                         buttonValue={"Delete"}
-                         isButtonEnabled={true}
-                         buttonAction={() => handleDeleteGame(game.id)}
-                       />
-                     </li>
+                    {userGames.map((game, index) => (
+                      <li key={index} className="mb-3">
+                        <Score
+                          date={game.gameDate.toLocaleDateString()}
+                          user=""
+                          score={game.score}
+                          buttonType={"btn-danger"}
+                          buttonValue={"Delete"}
+                          isButtonEnabled={true}
+                          buttonAction={() => handleDeleteGame(game.id)}
+                        />
+                      </li>
                     ))}
                   </ul>
                 </div>
