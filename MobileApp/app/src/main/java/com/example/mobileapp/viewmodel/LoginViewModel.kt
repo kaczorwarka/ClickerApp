@@ -8,8 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import com.example.mobileapp.apiconnection.RetrofitInstance
 import com.example.mobileapp.apiconnection.auth.AuthenticationRequest
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import okio.IOException
@@ -83,10 +81,6 @@ class LoginViewModel: ViewModel() {
                             token
                         ))
                     }
-//                    snackBarHostState.showSnackbar(
-//                        message = "Hello: ${user?.firstName}",
-//                        duration = SnackbarDuration.Short
-//                    )
                 } else {
                     snackBarHostState.showSnackbar(
                         message = "Error: ${response.code()}",

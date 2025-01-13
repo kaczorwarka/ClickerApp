@@ -2,7 +2,6 @@ package dev.kk.clickerApp.controller;
 import dev.kk.clickerApp.auth.GlobalGame;
 import dev.kk.clickerApp.model.Game;
 import dev.kk.clickerApp.service.GameService;
-import dev.kk.clickerApp.service.UserService;
 import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -53,7 +52,6 @@ public class GameController {
             gameService.createGame(email, game);
         } catch (NoSuchElementException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-            // Bo użytkownik po emailu jest szukany narazie i może go nie znaleźć
         }
     }
 

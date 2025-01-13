@@ -26,7 +26,7 @@ function RegistryCard() {
           }
         })
         .then((data) => {
-          sessionStorage.setItem("token", JSON.stringify({ token: data.token }));
+          sessionStorage.setItem("token", data.token);
           getUser(data.token);
         })
         .catch((err) => {

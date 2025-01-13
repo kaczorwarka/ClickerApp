@@ -48,7 +48,6 @@ function Main() {
   };
 
   let [user, setUser] = useState<User>();
-  let [paypalRequest, setPaypalRequest] = useState<paypalRequest>();
   let [token, setToken] = useState("");
   let [userUpdate, setUserUpdate] = useState(false);
   let [email, setEmail] = useState("");
@@ -256,10 +255,8 @@ function Main() {
   };
 
   const makePayment = async () => {
-    const clientId =
-      "AeUnxrvAmYBKIiI0LToqpm8AD8Yq2zCvLuVkoiBDGdLVVLnAXi6xis5gtn7pr5Dlt2zdKzxttq_G-RqU"; // Podstaw swój client_id
-    const clientSecret =
-      "EGMcIZBI9HQCj_PLug9c4UBK_vSN-NRL3eOHxYOgg-NQR6rFcbwNcIde1Lvdwdofdz-u3q1h3V00I5AM"; // Podstaw swój client_secret
+    const clientId = import.meta.env.VITE_APP_CLIENT_ID
+    const clientSecret = import.meta.env.VITE_APP_SECRET
 
     const credentials = btoa(`${clientId}:${clientSecret}`);
 
@@ -267,8 +264,8 @@ function Main() {
       await fetch("https://api-m.sandbox.paypal.com/v1/oauth2/token", {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded", // Wymagany typ dla tego endpointa
-          Authorization: `Basic ${credentials}`, // Basic Authorization
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${credentials}`,
         },
         body: "grant_type=client_credentials",
       })
@@ -328,7 +325,6 @@ function Main() {
           orderId: data.id,
           processId: processId,
         };
-        setPaypalRequest(localPayPalRequest);
         sessionStorage.setItem("paymet", JSON.stringify(localPayPalRequest));
         window.location.href = payLink;
       });

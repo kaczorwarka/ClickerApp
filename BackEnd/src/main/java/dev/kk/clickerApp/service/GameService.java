@@ -4,6 +4,7 @@ import dev.kk.clickerApp.model.Game;
 import dev.kk.clickerApp.model.User;
 import dev.kk.clickerApp.repository.GameRepository;
 import org.bson.types.ObjectId;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,7 +24,11 @@ public class GameService {
 
     public List<GlobalGame> getAllUserGames(String email){
         List<GlobalGame> globalGames = new ArrayList<>();
-        List<Game> games = gameRepository.findGamesByUserId(userService.getUserByEmail(email).getId());
+        List<Game> games = gameRepository.findGamesByUserId(
+                userService.getUserByEmail(email).getId(),
+                Sort.by(Sort.Direction.DESC, "_id")
+        );
+
         games.forEach(game -> {
             try {
                 User user = userService.getUser(game.getUserId());

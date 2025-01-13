@@ -14,7 +14,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobileapp.apiconnection.RetrofitInstance
@@ -23,8 +22,6 @@ import com.example.mobileapp.model.Game
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -74,7 +71,7 @@ class MainViewModel(
     }
 
     fun checkStart() {
-        if (amountOfLives <= 0){
+        if (_lives.intValue <= 0){
             scope.launch {
                 snackBarHostState.showSnackbar(
                     message = "You don't have enough amount of lives",
@@ -118,6 +115,7 @@ class MainViewModel(
                 if (response.isSuccessful) {
                     val user = response.body()
                     if (user != null) {
+
                         _lives.intValue = user.amountOfLives
                         saveGame()
                     }

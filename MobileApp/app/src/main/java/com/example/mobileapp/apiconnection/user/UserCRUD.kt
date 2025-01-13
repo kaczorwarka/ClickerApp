@@ -1,6 +1,4 @@
 package com.example.mobileapp.apiconnection.user
-
-import com.example.mobileapp.model.Game
 import com.example.mobileapp.model.User
 import okhttp3.RequestBody
 import retrofit2.Response
