@@ -12,7 +12,6 @@ interface User {
   lastName: string;
   email: string;
   amountOfLives: number;
-  password: string;
 }
 
 interface Game {
@@ -47,8 +46,12 @@ function Main() {
     deleteGame(id);
   };
 
-  let [user, setUser] = useState<User>();
-  let [token, setToken] = useState("");
+  let [user, setUser] = useState<User>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    amountOfLives: 0,
+  });
   let [userUpdate, setUserUpdate] = useState(false);
   let [email, setEmail] = useState("");
   let [password, setPassword] = useState("");
@@ -111,88 +114,84 @@ function Main() {
   };
 
   const deleteUser = async () => {
-    if (user) {
-      await fetch(`http://localhost:8080/api/user/${user.email}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+    await fetch(`http://localhost:8080/api/user/${user?.email}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tokenString}`,
+      },
+    })
+      .then((response) => {
+        if (response.status === 204) {
+          logOut();
+        } else if (response.status === 403) {
+          throw Error("Your tocken has expired");
+        } else {
+          throw Error(`${response.status}`);
+        }
       })
-        .then((response) => {
-          if (response.status === 204) {
-            logOut();
-          } else if (response.status === 403) {
-            throw Error("Your tocken has expired");
-          } else {
-            throw Error(`${response.status}`);
-          }
-        })
-        .catch((err) => {
-          setAlertType("alert-danger");
-          setAlertVisible(true);
-          setAltertText(err.message);
-        });
-    }
+      .catch((err) => {
+        setAlertType("alert-danger");
+        setAlertVisible(true);
+        setAltertText(err.message);
+      });
   };
 
   const modifyUser = async () => {
-    if (user) {
-      await fetch(`http://localhost:8080/api/user/${user.email}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          firstName: firstName,
-          lastName: lastName,
-          email: email,
-          password: password,
-        }),
+    await fetch(`http://localhost:8080/api/user/${user?.email}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tokenString}`,
+      },
+      body: JSON.stringify({
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+      }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else if (response.status === 400) {
+          throw Error("Wrong login data");
+        } else if (response.status === 404) {
+          logOut();
+        } else if (response.status === 403) {
+          throw Error("Your tocken has expired");
+        } else {
+          throw Error(`${response.status}`);
+        }
       })
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else if (response.status === 400) {
-            throw Error("Wrong login data");
-          } else if (response.status === 404) {
-            logOut();
-          } else if (response.status === 403) {
-            throw Error("Your tocken has expired");
-          } else {
-            throw Error(`${response.status}`);
-          }
-        })
-        .then((data) => {
-          setEmail("");
-          setPassword("");
-          setFirstName("");
-          setLastName("");
-
-          sessionStorage.setItem(
-            "user",
-            JSON.stringify({
-              firstName: data.firstName,
-              lastName: data.lastName,
-              email: data.email,
-              amountOfLives: data.amountOfLives,
-            })
-          );
-
-          setAlertType("alert-success");
-          setAlertVisible(true);
-          setAltertText("Success");
-        })
-        .catch((err) => {
-          setAlertType("alert-danger");
-          setAlertVisible(true);
-          setAltertText(err.message);
-        });
-    }
+      .then((data) => {
+        setEmail("");
+        setPassword("");
+        setFirstName("");
+        setLastName("");
+        
+        sessionStorage.setItem(
+          "user",
+          JSON.stringify({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            amountOfLives: data.amountOfLives,
+          })
+        );
+        
+        setAlertType("alert-success");
+        setAlertVisible(true);
+        setAltertText("Success");
+      })
+      .catch((err) => {
+        setAlertType("alert-danger");
+        setAlertVisible(true);
+        setAltertText(err.message);
+      });
   };
 
-  const getGlobalGames = async (numberOfGames: number, localToken: string) => {
+  const getGlobalGames = async (localToken: string, numberOfGames: number) => {
     await fetch(`http://localhost:8080/api/games/bestGlobal/${numberOfGames}`, {
       method: "GET",
       headers: {
@@ -214,8 +213,8 @@ function Main() {
       });
   };
 
-  const getUserGames = async (localToken: string, email: string) => {
-    await fetch(`http://localhost:8080/api/games/user/${email}`, {
+  const getUserGames = async (localToken:string, localEmail: string) => {
+    await fetch(`http://localhost:8080/api/games/user/${localEmail}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -233,7 +232,7 @@ function Main() {
           userName: "",
         }));
         setUserGames(games);
-        getGlobalGames(30, localToken);
+        getGlobalGames(localToken, 30);
       });
   };
 
@@ -242,21 +241,21 @@ function Main() {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${tokenString}`,
       },
       body: JSON.stringify({
         id: id,
       }),
     }).then((response) => {
-      if (response.status === 204 && user) {
-        getUserGames(token, user?.email);
+      if (response.status === 204 && user && tokenString) {
+        getUserGames(tokenString, user.email);
       }
     });
   };
 
   const makePayment = async () => {
-    const clientId = import.meta.env.VITE_APP_CLIENT_ID
-    const clientSecret = import.meta.env.VITE_APP_SECRET
+    const clientId = import.meta.env.VITE_APP_CLIENT_ID;
+    const clientSecret = import.meta.env.VITE_APP_SECRET;
 
     const credentials = btoa(`${clientId}:${clientSecret}`);
 
@@ -331,7 +330,6 @@ function Main() {
   };
 
   const checkPayment = async (paypalRequestString: string) => {
-    
     let localPayPalRequest = null;
     if (paypalRequestString !== null && paypalRequestString !== "")
       localPayPalRequest = JSON.parse(paypalRequestString);
@@ -356,20 +354,17 @@ function Main() {
         if (data.status === "COMPLETED") {
           console.log(`Status: ${data.status}`);
           sessionStorage.setItem("payment", "");
-          console.log("test 1")
+          console.log("test 1");
           changeLivesAmount(3);
         }
       });
   };
 
   const changeLivesAmount = async (changeLives: number) => {
-    let localUser
+    let localUser;
     if (userString !== null && tokenString !== null) {
       localUser = JSON.parse(userString)
     }
-
-    if (localUser) {
-      console.log("test 3")
       await fetch(`http://localhost:8080/api/user/lives/${localUser.email}`, {
         method: "PUT",
         headers: {
@@ -402,23 +397,58 @@ function Main() {
             })
           );
 
-          navigate("/main")
+          navigate("/main");
         });
-    }
+  };
+
+  const getUser = async (localToken: string, localEmail: string) => {
+    await fetch(`http://localhost:8080/api/user/${localEmail}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localToken}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else if (response.status === 403) {
+          throw Error("Your tocken has expired");
+        }
+      })
+      .then((data) => {
+        setUser({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          amountOfLives: data.amountOfLives,
+        });
+        sessionStorage.setItem(
+          "user",
+          JSON.stringify({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            amountOfLives: data.amountOfLives,
+          })
+        );
+        getUserGames(localToken ,data.email);
+      })
+      .catch((err) => {
+        setAlertType("alert-danger");
+        setAlertVisible(true);
+        setAltertText(err.message);
+      });
   };
 
   useEffect(() => {
-    if (userString !== null && tokenString !== null) {
-      setUser(JSON.parse(userString));
-      setToken(tokenString);
-      getUserGames(tokenString, JSON.parse(userString).email);
-
+    if (tokenString !== null && tokenString !== "" && userString !== null) {
+      getUser(tokenString, JSON.parse(userString).email);
       let paypalRequestString = sessionStorage.getItem("payment");
       sessionStorage.setItem("payment", "");
       if (paypalRequestString !== null && paypalRequestString !== "") {
         checkPayment(paypalRequestString);
       }
-       
     } else {
       logOut();
     }

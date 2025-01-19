@@ -71,16 +71,18 @@ class MainViewModel(
     }
 
     fun checkStart() {
-        if (_lives.intValue <= 0){
-            scope.launch {
+        scope.launch {
+            setUpdatedLives()
+
+            if (_lives.intValue <= 0){
                 snackBarHostState.showSnackbar(
                     message = "You don't have enough amount of lives",
                     duration = SnackbarDuration.Short
                 )
+            } else {
+                gameStarted.value = true
+                score.intValue = 0
             }
-        } else {
-            gameStarted.value = true
-            score.intValue = 0
         }
     }
 
@@ -141,8 +143,6 @@ class MainViewModel(
                 )
             }
         }
-
-//        lives.value -= 1
     }
 
     private fun saveGame () {
@@ -181,5 +181,36 @@ class MainViewModel(
                 )
             }
         }
+    }
+
+    private suspend fun setUpdatedLives() {
+            try {
+                val response = RetrofitInstance.userCrud.getUser(email, "Bearer $token")
+                if (response.isSuccessful) {
+                    val user = response.body()
+                    if (user != null) {
+                       _lives.intValue = user.amountOfLives
+                    }
+                } else {
+                    snackBarHostState.showSnackbar(
+                        message = "Error: ${response.code()}",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+
+            }catch (e: IOException) {
+                Log.e(TAG, "IOException: $e")
+
+                snackBarHostState.showSnackbar(
+                    message = "Internet Connection error",
+                    duration = SnackbarDuration.Short
+                )
+            } catch (e: HttpException) {
+                Log.e(TAG, "HttpException: $e")
+                snackBarHostState.showSnackbar(
+                    message = "Data Base api connection error",
+                    duration = SnackbarDuration.Short
+                )
+            }
     }
 }
