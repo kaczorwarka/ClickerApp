@@ -325,13 +325,13 @@ function Main() {
           orderId: data.id,
           processId: processId,
         };
-        sessionStorage.setItem("paymet", JSON.stringify(localPayPalRequest));
+        sessionStorage.setItem("payment", JSON.stringify(localPayPalRequest));
         window.location.href = payLink;
       });
   };
 
-  const checkPayment = async () => {
-    let paypalRequestString = sessionStorage.getItem("paymet");
+  const checkPayment = async (paypalRequestString: string) => {
+    
     let localPayPalRequest = null;
     if (paypalRequestString !== null && paypalRequestString !== "")
       localPayPalRequest = JSON.parse(paypalRequestString);
@@ -412,7 +412,13 @@ function Main() {
       setUser(JSON.parse(userString));
       setToken(tokenString);
       getUserGames(tokenString, JSON.parse(userString).email);
-      checkPayment();
+
+      let paypalRequestString = sessionStorage.getItem("payment");
+      sessionStorage.setItem("payment", "");
+      if (paypalRequestString !== null && paypalRequestString !== "") {
+        checkPayment(paypalRequestString);
+      }
+       
     } else {
       logOut();
     }
